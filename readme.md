@@ -1,0 +1,1 @@
+Solution for UVA Online Judge problems.
