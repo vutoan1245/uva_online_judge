@@ -57,13 +57,6 @@ class p00908{
         in.close();
     }
 
-    static void union(int first, int second){
-        int parentFirst = findParent(first);
-        int parentSecond = findParent(second);
-
-        parent[parentFirst] = parentSecond;
-    }
-
     static int findParent(int index){
         if(parent[index] == index) return index;
         return parent[index] = findParent(parent[index]);
