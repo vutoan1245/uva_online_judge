@@ -1,97 +1,96 @@
-import java.util.Arrays;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.PriorityQueue;
-import java.util.Scanner;
 
-class p01112{
-    static int adjMatrix[][];
-    static int nodeNum, targetNode, timeLimit;
-    public static void main(String args[]){
-        Scanner in = new Scanner(System.in);
+class p01112 {
+    static final int INF = Integer.MAX_VALUE;
 
-        int caseNum = in.nextInt();
+    public static void main(String args[]) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
-        while(caseNum-->0){
-            nodeNum = in.nextInt();
-            targetNode = in.nextInt() - 1;
-            timeLimit = in.nextInt();
-            int edgeNum = in.nextInt();
+        int caseNum = Integer.parseInt(in.readLine());
 
-            adjMatrix = new int[nodeNum][nodeNum];
-            for(int i = 0; i < nodeNum; i++){
-                Arrays.fill(adjMatrix[i], -1);
-            }
-            for(int i = 0; i < edgeNum; i++){
-                int first = in.nextInt() - 1;
-                int second = in.nextInt() - 1;
-                adjMatrix[first][second] = in.nextInt();
+        while (caseNum-- > 0) {
+            in.readLine();
+            int cellNum = Integer.parseInt(in.readLine());
+            int exit = Integer.parseInt(in.readLine()) - 1;
+            int timeLimit = Integer.parseInt(in.readLine());
+            int edgeNum = Integer.parseInt(in.readLine());
+
+            ArrayList<ArrayList<Edge>> adjList = new ArrayList<ArrayList<Edge>>();
+            for (int i = 0; i < cellNum; i++) {
+                adjList.add(new ArrayList<Edge>());
             }
 
-            int count = 0;
-            for(int i = 0; i < nodeNum; i++){
-                if(dijkstra(i))
-                    count++;
+            for (int i = 0; i < edgeNum; i++) {
+                String strArr[] = in.readLine().split(" ");
+                int from = Integer.parseInt(strArr[0]) - 1;
+                int to = Integer.parseInt(strArr[1]) - 1;
+                int cost = Integer.parseInt(strArr[2]);
+
+                adjList.get(from).add(new Edge(to, cost));
             }
 
-            System.out.println(count);
-            if(caseNum != 0) System.out.println();
-        }
+            int result = 0;
+            for (int i = 0; i < cellNum; i++) {
+                int currTime[] = new int[cellNum];
+                for (int j = 0; j < cellNum; j++) {
+                    currTime[j] = INF;
+                }
+                currTime[i] = 0;
 
-        in.close();
-    }
+                PriorityQueue<Node> pq = new PriorityQueue<Node>();
+                pq.add(new Node(i, 0));
 
-    static boolean dijkstra(int srcNode){
-        int time[] = new int[nodeNum];
-        Arrays.fill(time, Integer.MAX_VALUE);
-        time[srcNode] = 0;
+                while (!pq.isEmpty()) {
+                    Node n = pq.poll();
 
-        PriorityQueue<Node> pq = new PriorityQueue<>();
+                    if (n.time > timeLimit) {
+                        break;
+                    }
+                    if (n.from == exit) {
+                        result++;
+                        break;
+                    }
 
-        pq.add(new Node(srcNode, 0));
-
-        while(!pq.isEmpty()){
-            Node node = pq.poll();
-
-            if(node.cost > time[node.index]) continue;
-
-            for(int i = 0; i < nodeNum; i++){
-                if(adjMatrix[node.index][i] == -1) continue;
-                if(node.cost + adjMatrix[node.index][i] < time[i]){
-                    time[i] = node.cost + adjMatrix[node.index][i];
-                    pq.add(new Node(i, time[i]));
+                    for (int j = 0; j < adjList.get(n.from).size(); j++) {
+                        Edge next = adjList.get(n.from).get(j);
+                        if (n.time + next.time < currTime[next.to]) {
+                            currTime[next.to] = n.time + next.time;
+                            pq.add(new Node(next.to, currTime[next.to]));
+                        }
+                    }
                 }
             }
+
+            System.out.println(result);
+            if (caseNum != 0)
+                System.out.println();
+
         }
-
-        return time[targetNode] <= timeLimit;
     }
 }
 
-class Node implements Comparable<Node>{
-    int index;
-    int cost;
-    
-    Node(int index, int cost){
-        this.index = index;
-        this.cost = cost;
-    }
+class Node implements Comparable<Node> {
+    int from, time;
 
-    @Override
-    public int compareTo(Node o) {
-        return cost - o.cost;
-    }
-}
-
-class Edge implements Comparable<Edge> {
-    int from, to, time;
-
-    Edge(int from, int to, int time){
+    Node(int from, int cost) {
         this.from = from;
-        this.to = to;
-        this.time = time;
+        this.time = cost;
     }
 
-    @Override
-    public int compareTo(Edge o) {
+    public int compareTo(Node o) {
         return time - o.time;
+    }
+}
+
+class Edge {
+    int to, time;
+
+    Edge(int to, int cost) {
+        this.to = to;
+        this.time = cost;
     }
 }
