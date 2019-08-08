@@ -1,119 +1,125 @@
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.PriorityQueue;
 
+class p10278 {
+    static int fireStationNum, intersectionNum;
+    static boolean isFireStation[];
+    static ArrayList<ArrayList<Edge>> adjList;
 
-class p10278{
-    public static void main(String args[]) throws Exception{
+    public static void main(String args[]) throws NumberFormatException, IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
         int caseNum = Integer.parseInt(in.readLine());
+
         in.readLine();
-
-        for(int i = 0; i < caseNum; i++){
-            if(i != 0) System.out.println();
+        while (caseNum-- > 0) {
             String strArr[] = in.readLine().split(" ");
-            int fireStationNum = Integer.parseInt(strArr[0]);
-            int nodeNum = Integer.parseInt(strArr[1]);
+            fireStationNum = Integer.parseInt(strArr[0]);
+            intersectionNum = Integer.parseInt(strArr[1]);
 
-            boolean fireStation[] = new boolean[nodeNum];
-            // strArr = in.readLine().split(" ");
-            for(int j = 0; j < fireStationNum; j++){
-                fireStation[Integer.parseInt(in.readLine())-1] = true;
+            isFireStation = new boolean[intersectionNum];
+            for (int i = 0; i < fireStationNum; i++) {
+                int index = Integer.parseInt(in.readLine()) - 1;
+                isFireStation[index] = true;
             }
 
-            // Create an adj list of graph
-            ArrayList<ArrayList<Edge>> edgeList = new ArrayList<ArrayList<Edge>>(nodeNum);
-            for(int j = 0; j < nodeNum; j++){
-                edgeList.add(new ArrayList<Edge>(nodeNum));
+            adjList = new ArrayList<ArrayList<Edge>>(intersectionNum);
+            for (int i = 0; i < intersectionNum; i++) {
+                adjList.add(new ArrayList<Edge>());
             }
+
             String line;
-            while((line = in.readLine())!= null && !line.equals("")){
+            while ((line = in.readLine()) != null && !line.equals("")) {
                 strArr = line.split(" ");
-                int node1 = Integer.parseInt(strArr[0]) - 1;
-                int node2 = Integer.parseInt(strArr[1]) - 1;
+                int from = Integer.parseInt(strArr[0]) - 1;
+                int to = Integer.parseInt(strArr[1]) - 1;
                 int cost = Integer.parseInt(strArr[2]);
 
-                edgeList.get(node1).add(new Edge(node2, cost));
-                edgeList.get(node2).add(new Edge(node1, cost));
+                adjList.get(from).add(new Edge(to, cost));
+                adjList.get(to).add(new Edge(from, cost));
             }
 
-            // Calculate output
-            int resultNode = 0, resultPath = Integer.MAX_VALUE;
-            // Put a fire station in every intersection and calculate maximum distance
-            for(int j = 0; j < nodeNum; j++){
-
-                if(fireStation[j]) continue;
-
-                int minPath[] = new int[nodeNum];
-                Arrays.fill(minPath, Integer.MAX_VALUE);
-
-                PriorityQueue<Node> pq = new PriorityQueue<Node>();
-                pq.add(new Node(j, 0));
-                minPath[j] = 0;
-                for(int k = 0; k < nodeNum; k++){
-                    if(fireStation[k]){
-                        pq.add(new Node(k, 0));
-                        minPath[k] = 0;
-                    }
-                }
-
-                while(!pq.isEmpty()){
-                    Node node = pq.poll();
-                    if(node.cost > minPath[node.pos]) continue;
-                    for(Edge e: edgeList.get(node.pos)){
-                        if(e.cost + node.cost < minPath[e.to]){
-                            minPath[e.to] = e.cost + node.cost;
-                            pq.add(new Node(e.to, e.cost + node.cost));
-                        }
-                    }
-                }
-
-                int currentMax = 0;
-                for(int k = 0; k < nodeNum; k++){
-                    currentMax = Math.max(minPath[k], currentMax);
-                }
-
-                if(currentMax < resultPath){
-                    resultPath = currentMax;
-                    resultNode = j;
+            int result = Integer.MAX_VALUE, resultIndex = 0;
+            for (int i = 0; i < intersectionNum; i++) {
+                if (isFireStation[i])
+                    continue;
+                int holder = diskatra(i);
+                if (holder < result) {
+                    result = holder;
+                    resultIndex = i;
                 }
             }
 
-            System.out.println(resultNode + 1);
+            System.out.println(resultIndex + 1);
+            if (caseNum != 0)
+                System.out.println();
         }
 
         in.close();
     }
+
+    static int diskatra(int index) {
+
+        PriorityQueue<Node> pq = new PriorityQueue<Node>();
+        pq.add(new Node(index, 0));
+
+        int cost[] = new int[intersectionNum];
+        for (int i = 0; i < intersectionNum; i++) {
+            if (isFireStation[i]) {
+                cost[i] = 0;
+                pq.add(new Node(i, 0));
+            } else {
+                cost[i] = Integer.MAX_VALUE;
+            }
+        }
+        cost[index] = 0;
+
+        while (!pq.isEmpty()) {
+            Node curr = pq.poll();
+
+            if (curr.currCost > cost[curr.from]) {
+                continue;
+            }
+
+            for (int i = 0; i < adjList.get(curr.from).size(); i++) {
+                Edge next = adjList.get(curr.from).get(i);
+                if (curr.currCost + next.cost < cost[next.to]) {
+                    cost[next.to] = curr.currCost + next.cost;
+                    pq.add(new Node(next.to, cost[next.to]));
+                }
+            }
+        }
+
+        int result = cost[0];
+        for (int i = 0; i < intersectionNum; i++) {
+            result = Math.max(result, cost[i]);
+        }
+
+        return result;
+    }
 }
 
-class Edge implements Comparable<Edge>{
-    int to;
-    int cost;
-    Edge(int to, int cost){
+class Edge {
+    int to, cost;
+
+    Edge(int to, int cost) {
         this.to = to;
         this.cost = cost;
     }
-
-    @Override
-    public int compareTo(Edge o) {
-        return cost - o.cost;
-    }
 }
 
-class Node implements Comparable<Node>{
-    int pos;
-    int cost;
+class Node implements Comparable<Node> {
+    int from, currCost;
 
-    Node(int pos, int cost){
-        this.pos = pos;
-        this.cost = cost;
+    Node(int from, int currCost) {
+        this.from = from;
+        this.currCost = currCost;
     }
 
-    @Override
     public int compareTo(Node o) {
-        return cost - o.cost;
+        return currCost - o.currCost;
     }
 }
