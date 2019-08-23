@@ -1,43 +1,52 @@
 import java.util.Scanner;
 
-class p12032{
-    public static void main(String args[]){
+class p12032 {
+    static int ringNum, ringList[];
+
+    public static void main(String args[]) {
         Scanner in = new Scanner(System.in);
 
         int caseNum = in.nextInt();
-        for(int i = 0; i < caseNum; i++){
-            int rungNum = in.nextInt();
-            int rungList[] = new int[rungNum+1];
-            rungList[0] = 0;
-            for(int j = 1; j <= rungNum; j++){
-                rungList[j] = in.nextInt();
+
+        for (int i = 1; i <= caseNum; i++) {
+            ringNum = in.nextInt();
+            ringList = new int[ringNum + 1];
+            ringList[0] = 0;
+            for (int j = 1; j <= ringNum; j++) {
+                ringList[j] = in.nextInt();
             }
 
-            // Calculate output
-            int start = 1, end = 10000000, mid = 0, result = 0;
+            // Binary Search the Answer
+            int start = 1, end = 10000000, mid, result = 0;
 
-            while(end >= start){
+            while (end >= start) {
                 mid = (end + start) / 2;
-                if(validate(mid, rungList)){
+
+                if (validate(mid)) {
                     result = mid;
                     end = mid - 1;
                 } else {
                     start = mid + 1;
                 }
+
             }
 
-            System.out.printf("Case %d: %d\n", i+1, result);
+            System.out.printf("Case %d: %d\n", i, result);
         }
+
+        in.close();
     }
 
-    static boolean validate(int height, int rungList[]){
-        int holder = height;
-        int len = rungList.length;
-        for(int i = 1; i < len; i++){
-            int diff = rungList[i] - rungList[i-1];
-            if(diff == holder) holder--;
-            else if(diff > holder) return false;
+    static boolean validate(int n) {
+        for (int i = 1; i <= ringNum; i++) {
+            int diff = ringList[i] - ringList[i - 1];
+            if (diff > n)
+                return false;
+            if (diff == n) {
+                n--;
+            }
         }
+
         return true;
     }
 }
