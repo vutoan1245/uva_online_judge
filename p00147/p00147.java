@@ -1,37 +1,30 @@
 import java.util.Scanner;
 
-class p00147{
-    public static void main(String args[]){
+class p00147 {
+    static int coinList[] = { 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000 };
+    static int size = coinList.length, max = 30001;
+
+    public static void main(String args[]) {
         Scanner in = new Scanner(System.in);
 
-        int centList[] = {5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000};
-        int coinNum = centList.length;
+        long dp[] = new long[max + 1];
+        dp[0] = 1;
 
-        int SIZE = 30005;
-        long possible[] = new long[SIZE];
-        possible[0] = 1;
-    
-        for(int c = 0; c < coinNum; ++c){
-            int end = SIZE - centList[c];
-            for (int i = 0; i < end; ++i){
-                possible[i + centList[c]] += possible[i];      
+        for (int i = 0; i < size; i++) {
+            for (int j = coinList[i]; j <= max; j++) {
+                dp[j] += dp[j - coinList[i]];
             }
         }
 
-        String line;
-        while(!(line = in.next()).equals("0.00")){
-            double num = Double.parseDouble(line);
-            int value = (int) (num * 100 + 0.5);
-            String resultString = possible[value] + "";
+        while (true) {
+            double value = in.nextDouble();
+            if (value == 0.0)
+                break;
 
-            for(int i = 0; i < 6 - line.length(); i++){
-                System.out.print(" ");
-            }
-            System.out.print(line);
-            for(int i = 0; i < 17 - resultString.length(); i++){
-                System.out.print(" ");
-            }
-            System.out.println(resultString);
+            int cents = (int) (value * 100 + 0.5);
+            long coinNum = dp[cents];
+
+            System.out.printf("%6.2f%17d\n", value, coinNum);
         }
 
         in.close();
